@@ -21,7 +21,10 @@ namespace QuanLyKhoMVC.Controllers
         // GET: VatTus
         public async Task<IActionResult> Index()
         {
-            return View(await _context.DanhSachVatTu.ToListAsync());
+            var list = await _context.DanhSachVatTu
+                             .Where(v => v.IsDeleted == false)
+                             .ToListAsync();
+            return View(list);
         }
 
         // GET: VatTus/Details/5
@@ -139,53 +142,34 @@ namespace QuanLyKhoMVC.Controllers
 
             return View(vatTu);
         }
-
-        // POST: VatTus/Delete/5
-        //    [HttpPost, ActionName("Delete")]
-        //    [ValidateAntiForgeryToken]
-        //    public async Task<IActionResult> DeleteConfirmed(string id, int soLuongXuat)
-        //    {
-        //        // Tìm vật tư trong Database dựa vào mã (id)
-        //        var vatTu = await _context.DanhSachVatTu.FindAsync(id);
-
-        //        if (vatTu != null)
-        //        {
-        //            // Kiểm tra logic: chỉ trừ nếu số lượng xuất hợp lệ
-        //            if (soLuongXuat > 0 && soLuongXuat <= vatTu.SoLuong)
-        //            {
-        //                // THAY THẾ lệnh Remove bằng phép trừ
-        //                vatTu.SoLuong -= soLuongXuat;
-
-        //                // Cập nhật lại vào Database
-        //                _context.Update(vatTu);
-        //                await _context.SaveChangesAsync();
-        //            }
-        //            else if (soLuongXuat > vatTu.SoLuong)
-        //            {
-        //                // Nếu nhập quá số lượng, bạn có thể thêm thông báo lỗi ở đây nếu muốn
-        //                // Tạm thời mình cho quay về Index để tránh lỗi crash
-        //                return RedirectToAction(nameof(Index));
-        //            }
-        //        }
-
-        //        return RedirectToAction(nameof(Index));
-        //    }
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(string id, int soLuongXuat)
         {
             var vatTu = await _context.DanhSachVatTu.FindAsync(id);
-            if (vatTu != null && soLuongXuat <= vatTu.SoLuong)
+
+            // Guard Clause: Nếu không thấy vật tư hoặc số lượng xuất tào lao thì thoát luôn
+            if (vatTu == null || soLuongXuat <= 0 || soLuongXuat > vatTu.SoLuong)
             {
-                // 1. Trừ tồn kho hiện tại
-                vatTu.SoLuong -= soLuongXuat;
-
-                // 2. Cộng dồn vào cột Đã Xuất
-                vatTu.SoLuongDaXuat += soLuongXuat;
-
-                _context.Update(vatTu);
-                await _context.SaveChangesAsync();
+                return RedirectToAction(nameof(Index));
             }
+
+            // --- LOGIC CHÍNH NẰM Ở ĐÂY (Hết chồng chéo) ---
+
+            // 1. Cập nhật số lượng
+            vatTu.SoLuong -= soLuongXuat;
+            vatTu.SoLuongDaXuat += soLuongXuat;
+
+            // 2. Kiểm tra để ẩn (Xóa mềm)
+            if (vatTu.SoLuong == 0)
+            {
+                vatTu.IsDeleted = true;
+            }
+
+            // 3. Lưu một lần duy nhất cho tất cả thay đổi
+            _context.Update(vatTu);
+            await _context.SaveChangesAsync();
+
             return RedirectToAction(nameof(Index));
         }
         private bool VatTuExists(string id)

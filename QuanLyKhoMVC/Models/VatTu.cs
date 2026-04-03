@@ -10,5 +10,6 @@ namespace QuanLyKhoMVC.Models
         public int SoLuong { get; set; }
         public string ViTri { get; set; } = string.Empty;
         public int SoLuongDaXuat { get; set; } = 0; // Mặc định ban đầu là 0
+        public bool IsDeleted { get; set; } = false;
     }
 }
