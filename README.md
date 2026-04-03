@@ -1,4 +1,4 @@
-Hệ thống Quản lý Kho cho Xưởng Sản xuất (THUẦN AI)
+Hệ thống Quản lý Kho cho Xưởng Sản xuất (THUẦN AI......)
 
 ![alt text](https://img.shields.io/badge/License-MIT-yellow.svg)
 
