@@ -1,0 +1,218 @@
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using WMSPro.Models;
+using WMSPro.ViewModels;
+
+namespace WMSPro.Controllers
+{
+    /// <summary>
+    /// Chỉ Admin mới có quyền quản lý tài khoản người dùng
+    /// </summary>
+    [Authorize(Roles = VaiTroConst.Admin)]
+    public class NguoiDungController : Controller
+    {
+        private readonly UserManager<ApplicationUser> _userMgr;
+        private readonly RoleManager<IdentityRole> _roleMgr;
+
+        public NguoiDungController(UserManager<ApplicationUser> userMgr, RoleManager<IdentityRole> roleMgr)
+        {
+            _userMgr = userMgr;
+            _roleMgr = roleMgr;
+        }
+
+        // ── Danh sách người dùng ──
+        public async Task<IActionResult> Index()
+        {
+            var users = _userMgr.Users.ToList();
+            var result = new List<NguoiDungViewModel>();
+
+            foreach (var u in users)
+            {
+                var roles = await _userMgr.GetRolesAsync(u);
+                result.Add(new NguoiDungViewModel
+                {
+                    Id = u.Id,
+                    TenDangNhap = u.UserName ?? "",
+                    HoTen = u.HoTen,
+                    Email = u.Email,
+                    VaiTro = roles.FirstOrDefault() ?? "Chưa có",
+                    TrangThai = u.TrangThai,
+                    NgayTao = u.NgayTao
+                });
+            }
+
+            return View(result.OrderByDescending(x => x.NgayTao).ToList());
+        }
+
+        // ── Tạo tài khoản mới ──
+        public IActionResult Tao()
+        {
+            ViewBag.DanhSachVaiTro = new[] { VaiTroConst.Admin, VaiTroConst.QuanLy, VaiTroConst.NhanVien };
+            return View(new TaoTaiKhoanViewModel());
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Tao(TaoTaiKhoanViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                ViewBag.DanhSachVaiTro = new[] { VaiTroConst.Admin, VaiTroConst.QuanLy, VaiTroConst.NhanVien };
+                return View(model);
+            }
+
+            if (await _userMgr.FindByNameAsync(model.TenDangNhap) != null)
+            {
+                ModelState.AddModelError("TenDangNhap", "Tên đăng nhập đã tồn tại!");
+                ViewBag.DanhSachVaiTro = new[] { VaiTroConst.Admin, VaiTroConst.QuanLy, VaiTroConst.NhanVien };
+                return View(model);
+            }
+
+            var user = new ApplicationUser
+            {
+                UserName = model.TenDangNhap,
+                Email = model.Email,
+                HoTen = model.HoTen,
+                TrangThai = "Hoạt động",
+                NgayTao = DateTime.Now
+            };
+
+            var result = await _userMgr.CreateAsync(user, model.MatKhau);
+            if (result.Succeeded)
+            {
+                await _userMgr.AddToRoleAsync(user, model.VaiTro);
+                TempData["Success"] = $"Đã tạo tài khoản {model.TenDangNhap} ({model.VaiTro}) thành công!";
+                return RedirectToAction("Index");
+            }
+
+            foreach (var err in result.Errors)
+                ModelState.AddModelError("", err.Description);
+
+
+            ViewBag.DanhSachVaiTro = new[] { VaiTroConst.Admin, VaiTroConst.QuanLy, VaiTroConst.NhanVien };
+            return View(model);
+        }
+
+        // ── Chỉnh sửa vai trò người dùng ──
+        public async Task<IActionResult> Sua(string id)
+        {
+            var user = await _userMgr.FindByIdAsync(id);
+            if (user == null) return NotFound();
+
+            var roles = await _userMgr.GetRolesAsync(user);
+            var suaViewModel = new SuaTaiKhoanViewModel
+            {
+                Id = user.Id,
+                TenDangNhap = user.UserName ?? "",
+                HoTen = user.HoTen,
+                Email = user.Email,
+                VaiTroHienTai = roles.FirstOrDefault() ?? "",
+                TrangThai = user.TrangThai
+            };
+
+            ViewBag.DanhSachVaiTro = new[] { VaiTroConst.Admin, VaiTroConst.QuanLy, VaiTroConst.NhanVien };
+            return View(suaViewModel);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Sua(SuaTaiKhoanViewModel model)
+        {
+            var user = await _userMgr.FindByIdAsync(model.Id);
+            if (user == null) return NotFound();
+
+            var currentUser = await _userMgr.GetUserAsync(User);
+            if (user.Id == currentUser?.Id)
+            {
+                TempData["Error"] = "Không thể thay đổi vai trò của chính mình!";
+                return RedirectToAction("Index");
+            }
+
+            // Cập nhật thông tin cá nhân
+            user.HoTen = model.HoTen;
+            user.Email = model.Email;
+            await _userMgr.UpdateAsync(user);
+
+            // Thay đổi vai trò
+            if (!string.IsNullOrEmpty(model.VaiTroHienTai) && model.VaiTroHienTai != model.VaiTroMoi)
+            {
+                // Xoá vai trò cũ
+                await _userMgr.RemoveFromRoleAsync(user, model.VaiTroHienTai);
+                // Thêm vai trò mới
+                await _userMgr.AddToRoleAsync(user, model.VaiTroMoi);
+                TempData["Success"] = $"Đã cập nhật tài khoản {user.UserName}. Vai trò thay đổi: {model.VaiTroHienTai} → {model.VaiTroMoi}";
+            }
+            else
+            {
+                TempData["Success"] = $"Đã cập nhật thông tin tài khoản {user.UserName}!";
+            }
+
+            return RedirectToAction("Index");
+        }
+
+        // ── Khoá / Mở khoá tài khoản ──
+        [HttpPost]
+        public async Task<IActionResult> DoiTrangThai(string id)
+        {
+            var user = await _userMgr.FindByIdAsync(id);
+            if (user == null) return NotFound();
+
+            // Không cho khoá chính mình
+            var currentUser = await _userMgr.GetUserAsync(User);
+            if (user.Id == currentUser?.Id)
+            {
+                TempData["Error"] = "Không thể khoá tài khoản đang đăng nhập!";
+                return RedirectToAction("Index");
+            }
+
+            user.TrangThai = user.TrangThai == "Hoạt động" ? "Bị khoá" : "Hoạt động";
+
+            // Khoá tài khoản trong Identity
+            if (user.TrangThai == "Bị khoá")
+                await _userMgr.SetLockoutEndDateAsync(user, DateTimeOffset.UtcNow.AddYears(100));
+            else
+                await _userMgr.SetLockoutEndDateAsync(user, null);
+
+            await _userMgr.UpdateAsync(user);
+            TempData["Success"] = $"Đã {(user.TrangThai == "Hoạt động" ? "mở khoá" : "khoá")} tài khoản {user.UserName}!";
+            return RedirectToAction("Index");
+        }
+
+        // ── Đặt lại mật khẩu ──
+        [HttpPost]
+        public async Task<IActionResult> ResetMatKhau(string id)
+        {
+            var user = await _userMgr.FindByIdAsync(id);
+            if (user == null) return NotFound();
+
+            // Xoá mật khẩu cũ và đặt mật khẩu mới
+            var token = await _userMgr.GeneratePasswordResetTokenAsync(user);
+            var result = await _userMgr.ResetPasswordAsync(user, token, "Wms@123456");
+
+            if (result.Succeeded)
+                TempData["Success"] = $"Đã đặt lại mật khẩu tài khoản {user.UserName} thành: Wms@123456";
+            else
+                TempData["Error"] = "Có lỗi khi đặt lại mật khẩu!";
+
+            return RedirectToAction("Index");
+        }
+
+        // ── Xoá tài khoản ──
+        [HttpPost]
+        public async Task<IActionResult> Xoa(string id)
+        {
+            var user = await _userMgr.FindByIdAsync(id);
+            if (user == null) return NotFound();
+
+            var currentUser = await _userMgr.GetUserAsync(User);
+            if (user.Id == currentUser?.Id)
+            {
+                TempData["Error"] = "Không thể xoá tài khoản đang đăng nhập!";
+                return RedirectToAction("Index");
+            }
+
+            await _userMgr.DeleteAsync(user);
+            TempData["Success"] = $"Đã xoá tài khoản {user.UserName}!";
+            return RedirectToAction("Index");
+        }
+    }
+}

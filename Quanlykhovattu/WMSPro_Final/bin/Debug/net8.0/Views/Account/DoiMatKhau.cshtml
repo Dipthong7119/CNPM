@@ -1,0 +1,45 @@
+@model WMSPro.ViewModels.DoiMatKhauViewModel
+@{
+    ViewData["Title"] = "Đổi mật khẩu";
+    ViewData["SubTitle"] = "Cập nhật mật khẩu tài khoản của bạn";
+}
+
+<div class="card" style="max-width:480px;margin:0 auto;">
+    <div class="card-header">
+        <h3 style="margin:0;font-size:16px;">🔑 Đổi mật khẩu</h3>
+    </div>
+    <div style="padding:24px;">
+        <form asp-action="DoiMatKhau" method="post">
+            @Html.AntiForgeryToken()
+
+            <div asp-validation-summary="ModelOnly" style="color:#ef4444;font-size:13px;margin-bottom:16px;"></div>
+
+            <div class="form-group" style="margin-bottom:16px;">
+                <label class="form-label">Mật khẩu hiện tại</label>
+                <input class="form-input" asp-for="MatKhauCu" type="password" placeholder="Nhập mật khẩu hiện tại" />
+                <span asp-validation-for="MatKhauCu" style="color:#ef4444;font-size:12px;"></span>
+            </div>
+
+            <div class="form-group" style="margin-bottom:16px;">
+                <label class="form-label">Mật khẩu mới</label>
+                <input class="form-input" asp-for="MatKhauMoi" type="password" placeholder="Tối thiểu 6 ký tự" />
+                <span asp-validation-for="MatKhauMoi" style="color:#ef4444;font-size:12px;"></span>
+            </div>
+
+            <div class="form-group" style="margin-bottom:24px;">
+                <label class="form-label">Xác nhận mật khẩu mới</label>
+                <input class="form-input" asp-for="XacNhanMatKhauMoi" type="password" placeholder="Nhập lại mật khẩu mới" />
+                <span asp-validation-for="XacNhanMatKhauMoi" style="color:#ef4444;font-size:12px;"></span>
+            </div>
+
+            <div style="display:flex;gap:10px;">
+                <button type="submit" class="btn btn-primary">💾 Lưu thay đổi</button>
+                <a href="/Home/Index" class="btn btn-ghost">Huỷ</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

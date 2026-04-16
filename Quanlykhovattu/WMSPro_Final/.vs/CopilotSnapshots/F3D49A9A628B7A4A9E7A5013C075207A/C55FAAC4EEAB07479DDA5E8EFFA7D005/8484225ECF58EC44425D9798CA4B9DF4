@@ -1,0 +1,26 @@
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using WMSPro.Models;
+
+[HttpPost, Authorize(Roles = $"{VaiTroConst.Admin},{VaiTroConst.QuanLyKho}")]
+public async Task<IActionResult> Sua(PhieuXuatKho model)
+{
+    // Đảm bảo các field string không bị null
+    model.GhiChu ??= "";
+    model.TenHang ??= "";
+    model.MaLo ??= "";
+    model.DoiTac ??= "";
+    model.BoPhanNhan ??= "";
+    model.LyDoXuat ??= "";
+    model.TrangThai ??= "Chờ duyệt";
+    model.NguoiTaoId ??= "";
+    model.NguoiTaoHoTen ??= "";
+
+    var vatTu = await _db.VatTus.FirstOrDefaultAsync(v => v.MaVatTu == model.MaHang);
+    if (vatTu != null) model.TonSauXuat = vatTu.SoLuongTon - model.SlXuat;
+
+    _db.PhieuXuatKhos.Update(model);
+    await _db.SaveChangesAsync();
+    TempData["Success"] = $"Đã cập nhật {model.SoPhieu}!";
+    return RedirectToAction("Index");
+}

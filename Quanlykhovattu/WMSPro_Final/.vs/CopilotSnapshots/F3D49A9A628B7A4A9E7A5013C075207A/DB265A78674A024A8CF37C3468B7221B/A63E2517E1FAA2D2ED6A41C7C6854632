@@ -1,0 +1,83 @@
+﻿@model WMSPro.ViewModels.SuaTaiKhoanViewModel
+@{
+    ViewData["Title"] = "Chỉnh sửa tài khoản";
+    ViewData["SubTitle"] = $"Chỉnh sửa thông tin: {Model.TenDangNhap}";
+    var danhSachVaiTro = ViewBag.DanhSachVaiTro as string[] ?? new string[] { };
+}
+
+<div class="card" style="max-width:700px">
+    <div class="card-header">
+        <div class="card-title">✏️ Chỉnh sửa tài khoản</div>
+    </div>
+
+    <form asp-action="Sua" method="post">
+        <input type="hidden" asp-for="Id" />
+
+        <div class="form-grid">
+            <div class="form-group form-full">
+                <label class="form-label">Tên đăng nhập</label>
+                <input class="form-input" asp-for="TenDangNhap" readonly />
+                <small style="color:#999">Không thể thay đổi tên đăng nhập</small>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Họ tên *</label>
+                <input class="form-input" asp-for="HoTen" required />
+                <span class="field-error">@Html.ValidationMessageFor(m => m.HoTen)</span>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Email</label>
+                <input class="form-input" asp-for="Email" type="email" />
+                <span class="field-error">@Html.ValidationMessageFor(m => m.Email)</span>
+            </div>
+
+            <div class="form-group form-full">
+                <label class="form-label">Trạng thái</label>
+                <input class="form-input" value="@Model.TrangThai" readonly />
+                <small style="color:#999">Sử dụng nút "Khoá/Mở khoá" để thay đổi trạng thái</small>
+            </div>
+
+            <div class="form-group form-full">
+                <label class="form-label">Vai trò hiện tại</label>
+                <div style="padding:10px; background:#f0f0f0; border-radius:4px; font-weight:600; color:#333">
+                    @Model.VaiTroHienTai
+                </div>
+            </div>
+
+            <div class="form-group form-full">
+                <label class="form-label">Thay đổi vai trò *</label>
+                <select class="form-select" asp-for="VaiTroMoi" required>
+                    <option value="">-- Chọn vai trò mới --</option>
+                    @foreach (var role in danhSachVaiTro)
+                    {
+                        <option value="@role" selected="@(role == Model.VaiTroHienTai)">
+                            @role
+                        </option>
+                    }
+                </select>
+                <span class="field-error">@Html.ValidationMessageFor(m => m.VaiTroMoi)</span>
+                @if (Model.VaiTroHienTai != Model.VaiTroMoi && !string.IsNullOrEmpty(Model.VaiTroMoi))
+                {
+                    <div style="margin-top:10px; padding:10px; background:#fff3cd; border:1px solid #ffc107; border-radius:4px; color:#856404">
+                        ⚠️ <strong>Thay đổi vai trò:</strong> Vai trò sẽ thay đổi từ <strong>@Model.VaiTroHienTai</strong> thành <strong>@Model.VaiTroMoi</strong> khi lưu
+                    </div>
+                }
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <a href="/NguoiDung" class="btn btn-secondary">Hủy bỏ</a>
+            <button type="submit" class="btn btn-primary">💾 Lưu thay đổi</button>
+        </div>
+    </form>
+</div>
+
+<style>
+.field-error {
+    display: block;
+    color: #dc3545;
+    font-size: 0.875rem;
+    margin-top: 4px;
+}
+</style>

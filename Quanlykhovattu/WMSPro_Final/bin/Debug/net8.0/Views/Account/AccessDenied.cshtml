@@ -1,0 +1,99 @@
+@{
+    Layout = null;
+    ViewData["Title"] = "Không có quyền truy cập";
+}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Từ chối truy cập - WMS Pro</title>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Be Vietnam Pro',sans-serif;
+            background: #f5f7fa;
+            color: #1a202c;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .box {
+            text-align: center;
+            max-width: 440px;
+            background: #ffffff;
+            padding: 48px;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,.08);
+            border: 1px solid #e1e8ed;
+        }
+
+        .icon {
+            font-size: 72px;
+            margin-bottom: 24px;
+        }
+
+        h1 {
+            font-size: 28px;
+            font-weight: 800;
+            margin-bottom: 12px;
+            color: #1a202c;
+        }
+
+        p {
+            color: #64748b;
+            font-size: 15px;
+            line-height: 1.6;
+            margin-bottom: 28px;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 11px 24px;
+            background: #00d4aa;
+            color: #000;
+            border-radius: 8px;
+            font-weight: 600;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+            .btn:hover {
+                background: #00c994;
+            }
+
+        .btn-ghost {
+            background: transparent;
+            border: 1px solid #e1e8ed;
+            color: #1a202c;
+            margin-left: 10px;
+        }
+
+            .btn-ghost:hover {
+                background: #f8fafc;
+            }
+    </style>
+</head>
+<body>
+<div class="box">
+    <div class="icon">🚫</div>
+    <h1>Không có quyền truy cập</h1>
+    <p>Tài khoản của bạn không có quyền truy cập vào trang này.<br>
+    Vui lòng liên hệ Admin hệ thống nếu cần hỗ trợ.</p>
+    <div>
+        <a href="/Home/Index" class="btn">🏠 Về trang chủ</a>
+        <a href="/Account/Login" class="btn btn-ghost">🔐 Đổi tài khoản</a>
+    </div>
+</div>
+</body>
+</html>

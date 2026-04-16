@@ -1,0 +1,72 @@
+﻿@model WMSPro.ViewModels.TaoTaiKhoanViewModel
+@{
+    ViewData["Title"] = "Tạo tài khoản mới";
+    ViewData["SubTitle"] = "Thêm người dùng vào hệ thống WMS";
+    var danhSachVaiTro = ViewBag.DanhSachVaiTro as string[] ?? Array.Empty<string>();
+}
+
+<div class="card" style="max-width:520px;margin:0 auto;">
+    <div class="card-header">
+        <h3 style="margin:0;font-size:16px;">👤 Thông tin tài khoản mới</h3>
+    </div>
+    <div style="padding:24px;">
+        <form asp-action="Tao" method="post">
+            @Html.AntiForgeryToken()
+            <div asp-validation-summary="ModelOnly" style="color:#ef4444;font-size:13px;background:rgba(239,68,68,.08);padding:10px 14px;border-radius:8px;margin-bottom:16px;"></div>
+
+            <div class="form-group" style="margin-bottom:16px;">
+                <label class="form-label">Họ và tên <span style="color:#ef4444">*</span></label>
+                <input class="form-input" asp-for="HoTen" placeholder="Nguyễn Văn A" />
+                <span asp-validation-for="HoTen" style="color:#ef4444;font-size:12px;"></span>
+            </div>
+
+            <div class="form-group" style="margin-bottom:16px;">
+                <label class="form-label">Tên đăng nhập <span style="color:#ef4444">*</span></label>
+                <input class="form-input" asp-for="TenDangNhap" placeholder="Không dấu, không cách" />
+                <span asp-validation-for="TenDangNhap" style="color:#ef4444;font-size:12px;"></span>
+            </div>
+
+            <div class="form-group" style="margin-bottom:16px;">
+                <label class="form-label">Email</label>
+                <input class="form-input" asp-for="Email" type="email" placeholder="example@wms.vn (tuỳ chọn)" />
+                <span asp-validation-for="Email" style="color:#ef4444;font-size:12px;"></span>
+            </div>
+
+            <div class="form-group" style="margin-bottom:16px;">
+                <label class="form-label">Vai trò <span style="color:#ef4444">*</span></label>
+                <select class="form-input" asp-for="VaiTro">
+                    <option value="NhanVien">🟢 Nhân viên — Xem dữ liệu</option>
+                    <option value="QuanLy">🟡 Quản lý kho — Nhập/xuất kho</option>
+                    <option value="Admin">🔴 Admin — Toàn quyền</option>
+                </select>
+
+                <div style="margin-top:8px;padding:10px 12px;background:rgba(0,212,170,.06);border:1px solid rgba(0,212,170,.2);border-radius:8px;font-size:12px;color:#8b949e;line-height:1.7;">
+                    🟢 <strong>Nhân viên:</strong> Xem tồn kho, xem phiếu nhập/xuất, báo cáo<br>
+                    🟡 <strong>Quản lý kho:</strong> + Tạo/sửa phiếu, quản lý vật tư, vị trí<br>
+                    🔴 <strong>Admin:</strong> + Quản lý người dùng, xoá dữ liệu, cấu hình kho
+                </div>
+            </div>
+
+            <div class="form-group" style="margin-bottom:16px;">
+                <label class="form-label">Mật khẩu <span style="color:#ef4444">*</span></label>
+                <input class="form-input" asp-for="MatKhau" type="password" placeholder="Tối thiểu 6 ký tự" />
+                <span asp-validation-for="MatKhau" style="color:#ef4444;font-size:12px;"></span>
+            </div>
+
+            <div class="form-group" style="margin-bottom:24px;">
+                <label class="form-label">Xác nhận mật khẩu <span style="color:#ef4444">*</span></label>
+                <input class="form-input" asp-for="XacNhanMatKhau" type="password" placeholder="Nhập lại mật khẩu" />
+                <span asp-validation-for="XacNhanMatKhau" style="color:#ef4444;font-size:12px;"></span>
+            </div>
+
+            <div style="display:flex;gap:10px;">
+                <button type="submit" class="btn btn-primary">✅ Tạo tài khoản</button>
+                <a href="/NguoiDung/Index" class="btn btn-ghost">Huỷ</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

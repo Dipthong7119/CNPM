@@ -1,0 +1,109 @@
+﻿@model List<WMSPro.ViewModels.NguoiDungViewModel>
+@{
+    ViewData["Title"] = "Quản lý người dùng";
+    ViewData["SubTitle"] = $"Tổng {Model.Count} tài khoản trong hệ thống";
+}
+
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+    <div></div>
+    <a href="/NguoiDung/Tao" class="btn btn-primary">➕ Tạo tài khoản mới</a>
+</div>
+
+<div class="card">
+    <div class="card-header" style="display:flex;gap:12px;align-items:center;">
+        <span style="font-weight:700;">👥 Danh sách tài khoản</span>
+        <div style="display:flex;gap:8px;margin-left:auto;">
+            <span class="badge badge-red">Admin: @Model.Count(u => u.VaiTro == "Admin")</span>
+            <span class="badge badge-yellow">Quản lý: @Model.Count(u => u.VaiTro == "QuanLyKho")</span>
+            <span class="badge badge-green">Nhân viên: @Model.Count(u => u.VaiTro == "NhanVien")</span>
+        </div>
+    </div>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Họ tên</th>
+                <th>Tên đăng nhập</th>
+                <th>Email</th>
+                <th>Vai trò</th>
+                <th>Ngày tạo</th>
+                <th>Trạng thái</th>
+                <th>Thao tác</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var u in Model)
+            {
+                <tr>
+                    <td><strong>@u.HoTen</strong></td>
+                    <td><code style="background:#0d1117;padding:2px 6px;border-radius:4px;font-size:12px;">@u.TenDangNhap</code></td>
+                    <td style="color:#8b949e;font-size:13px;">@(u.Email ?? "—")</td>
+                    <td>
+                        @if (u.VaiTro == "Admin")
+                        {
+                            <span class="badge badge-red">🔴 Admin</span>
+                        }
+                        else if (u.VaiTro == "QuanLyKho")
+                        {
+                            <span class="badge badge-yellow">🟡 Quản lý kho</span>
+                        }
+                        else
+                        {
+                            <span class="badge badge-green">🟢 Nhân viên</span>
+                        }
+                    </td>
+                    <td style="color:#8b949e;font-size:13px;">@u.NgayTao.ToString("dd/MM/yyyy")</td>
+                    <td>
+                        <span class="badge @(u.TrangThai == "Hoạt động" ? "badge-green" : "badge-red")">
+                            @u.TrangThai
+                        </span>
+                    </td>
+                    <td>
+                        <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                            <a href="/NguoiDung/Sua/@u.Id" class="btn-sm btn-sm-info">
+                                ✏️ Sửa
+                            </a>
+                            <form asp-action="DoiTrangThai" method="post" style="display:inline;">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="id" value="@u.Id" />
+                                <button type="submit" class="btn-sm @(u.TrangThai == "Hoạt động" ? "btn-sm-danger" : "btn-sm-success")"
+                                        onclick="return confirm('@(u.TrangThai == "Hoạt động" ? "Khoá" : "Mở khoá") tài khoản @u.TenDangNhap?')">
+                                    @(u.TrangThai == "Hoạt động" ? "🔒 Khoá" : "🔓 Mở khoá")
+                                </button>
+                            </form>
+                            <form asp-action="ResetMatKhau" method="post" style="display:inline;">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="id" value="@u.Id" />
+                                <button type="submit" class="btn-sm btn-sm-warning"
+                                        onclick="return confirm('Đặt lại mật khẩu tài khoản @u.TenDangNhap thành Wms@123456?')">
+                                    🔑 Reset MK
+                                </button>
+                            </form>
+                            <form asp-action="Xoa" method="post" style="display:inline;">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="id" value="@u.Id" />
+                                <button type="submit" class="btn-sm btn-sm-danger"
+                                        onclick="return confirm('Xoá tài khoản @u.TenDangNhap? Hành động này không thể hoàn tác!')">
+                                    🗑️ Xoá
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<style>
+.btn-sm{padding:4px 10px;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;}
+.btn-sm-danger{background:rgba(239,68,68,.15);color:#ef4444;border:1px solid rgba(239,68,68,.3);}
+.btn-sm-danger:hover{background:rgba(239,68,68,.25);}
+.btn-sm-success{background:rgba(0,212,170,.15);color:#00d4aa;border:1px solid rgba(0,212,170,.3);}
+.btn-sm-success:hover{background:rgba(0,212,170,.25);}
+.btn-sm-warning{background:rgba(251,191,36,.15);color:#fbbf24;border:1px solid rgba(251,191,36,.3);}
+.btn-sm-warning:hover{background:rgba(251,191,36,.25);}
+.badge{display:inline-flex;align-items:center;padding:3px 8px;border-radius:20px;font-size:12px;font-weight:600;}
+.badge-red{background:rgba(239,68,68,.15);color:#ef4444;}
+.badge-yellow{background:rgba(251,191,36,.15);color:#fbbf24;}
+.badge-green{background:rgba(0,212,170,.15);color:#00d4aa;}
+</style>

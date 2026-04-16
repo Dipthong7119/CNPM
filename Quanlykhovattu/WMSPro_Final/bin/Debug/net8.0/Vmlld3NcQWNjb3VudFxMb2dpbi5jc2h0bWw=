@@ -1,0 +1,213 @@
+@model WMSPro.ViewModels.LoginViewModel
+@{
+    Layout = null;
+    ViewData["Title"] = "Đăng nhập";
+}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Đăng nhập - WMS Pro</title>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #f5f7fa;
+            --bg2: #ffffff;
+            --border: #e1e8ed;
+            --danger: #ef4444;
+            --text: #1a202c;
+            --text2: #64748b;
+            --accent: #00d4aa;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+        }
+
+        body {
+            font-family: 'Be Vietnam Pro',sans-serif;
+            background: var(--bg);
+            color: var(--text);
+        }
+
+        .login-page {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .login-box {
+            width: 420px;
+            background: var(--bg2);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 40px;
+            box-shadow: 0 4px 20px rgba(0,0,0,.08);
+        }
+
+        .login-logo {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .login-logo-icon {
+            font-size: 48px;
+            margin-bottom: 8px;
+        }
+
+        .login-logo-title {
+            font-size: 22px;
+            font-weight: 800;
+            color: var(--text);
+        }
+
+        .login-logo-sub {
+            font-size: 13px;
+            color: var(--text2);
+            margin-top: 4px;
+        }
+
+        .login-title {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: var(--text);
+        }
+
+        .form-group {
+            margin-bottom: 14px;
+        }
+
+        .form-label {
+            font-size: 13px;
+            font-weight: 600;
+            display: block;
+            margin-bottom: 6px;
+            color: var(--text);
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: #ffffff;
+            color: var(--text);
+            font-size: 14px;
+        }
+
+            .form-input:focus {
+                outline: none;
+                border-color: var(--accent);
+                box-shadow: 0 0 0 2px rgba(0,212,170,.1);
+            }
+
+        .btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 11px 16px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all .2s;
+            font-size: 14px;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: #000;
+            width: 100%;
+        }
+
+            .btn-primary:hover {
+                background: #00c994;
+            }
+
+        .login-error {
+            background: rgba(239,68,68,.08);
+            border: 1px solid rgba(239,68,68,.25);
+            color: var(--danger);
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 13px;
+            margin-bottom: 16px;
+        }
+
+        .login-hint {
+            font-size: 11px;
+            color: var(--text2);
+            margin-top: 20px;
+            text-align: center;
+            line-height: 1.8;
+            background: #f8fafc;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+
+            .login-hint strong {
+                color: var(--text);
+            }
+
+        .divider {
+            border: none;
+            border-top: 1px solid var(--border);
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+<div class="login-page">
+    <div class="login-box">
+        <div class="login-logo">
+            <div class="login-logo-icon">📦</div>
+            <div class="login-logo-title">WMS Pro</div>
+            <div class="login-logo-sub">Hệ thống Quản lý Kho Warehouse</div>
+        </div>
+        <div class="login-title">Đăng nhập hệ thống</div>
+
+        @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+        {
+            <div class="login-error">⚠️ @Model.ErrorMessage</div>
+        }
+
+        <form asp-action="Login" method="post">
+            @Html.AntiForgeryToken()
+            <div class="form-group">
+                <label class="form-label">Tên đăng nhập</label>
+                <input class="form-input" asp-for="TenDangNhap" placeholder="Nhập tên đăng nhập" autofocus />
+                <span asp-validation-for="TenDangNhap" style="color:var(--danger);font-size:12px;"></span>
+            </div>
+            <div class="form-group" style="margin-bottom:20px">
+                <label class="form-label">Mật khẩu</label>
+                <input class="form-input" asp-for="MatKhau" type="password" placeholder="Nhập mật khẩu" />
+                <span asp-validation-for="MatKhau" style="color:var(--danger);font-size:12px;"></span>
+            </div>
+            <button type="submit" class="btn btn-primary">🔐 Đăng nhập</button>
+        </form>
+
+        <hr class="divider" />
+
+        <div class="login-hint">
+            Tài khoản mặc định:<br>
+            🔴 Admin: <strong>admin</strong> / <strong>Admin@123</strong><br>
+            🟡 Quản lý kho: <strong>thukho</strong> / <strong>Thukho@123</strong><br>
+            🟢 Nhân viên: <strong>nhanvien</strong> / <strong>Nhanvien@123</strong>
+        </div>
+    </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,174 @@
+@using Microsoft.AspNetCore.Identity
+@using WMSPro.Models
+@inject SignInManager<ApplicationUser> SignInMgr
+@inject UserManager<ApplicationUser> UserMgr
+@{
+    var currentUser = await UserMgr.GetUserAsync(User);
+    var userRoles = currentUser != null ? await UserMgr.GetRolesAsync(currentUser) : new List<string>();
+    var vaiTro = userRoles.FirstOrDefault() ?? "";
+    var hoTen = currentUser?.HoTen ?? "Người dùng";
+    var initials = hoTen.Length >= 2 ? hoTen.Substring(0, 2) : hoTen;
+    var ctrl = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
+    bool isAdmin = vaiTro == VaiTroConst.Admin;
+    bool isQuanLy = vaiTro == VaiTroConst.QuanLy;
+    bool isNhanVien = vaiTro == VaiTroConst.NhanVien;
+    bool isQuanLyOrAdmin = isAdmin || isQuanLy;
+}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>@ViewData["Title"] - Kho</title>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="~/css/wms.css" />
+</head>
+<body>
+
+<aside class="sidebar">
+    <div class="sidebar-logo">
+        <div class="logo-icon">📦</div>
+        <div>
+            <div class="logo-sub">Hệ thống Quản lý Kho</div>
+        </div>
+    </div>
+
+    <nav class="sidebar-nav">
+        <div class="nav-section">
+            <div class="nav-label">Tổng quan</div>
+            <a href="/Home/Index" class="nav-item @(ctrl=="Home"?"active":"")">
+                <span class="nav-icon">🏠</span> Trang chủ
+            </a>
+        </div>
+
+        @* ── NHÂN VIÊN: Tạo yêu cầu nhập/xuất ── *@
+        @if (isNhanVien || isAdmin)
+        {
+            <div class="nav-section">
+                <div class="nav-label">Yêu cầu kho</div>
+                <a href="/NhapKho/Tao" class="nav-item @(ctrl=="NhapKho" ? "active" : "")">
+                    <span class="nav-icon">📥</span> Tạo phiếu nhập
+                </a>
+                <a href="/XuatKho/Tao" class="nav-item @(ctrl=="XuatKho" ? "active" : "")">
+                    <span class="nav-icon">📤</span> Tạo phiếu xuất
+                </a>
+            </div>
+        }
+
+        @* ── QUẢN LÝ + ADMIN: Phê duyệt, quản lý vật tư, tồn kho ── *@
+        @if (isQuanLyOrAdmin)
+        {
+            <div class="nav-section">
+                <div class="nav-label">Nghiệp vụ</div>
+                <a href="/NhapKho/Index" class="nav-item @(ctrl=="NhapKho"?"active":"")">
+                    <span class="nav-icon">📥</span> Nhập kho
+                </a>
+                <a href="/XuatKho/Index" class="nav-item @(ctrl=="XuatKho"?"active":"")">
+                    <span class="nav-icon">📤</span> Xuất kho
+                </a>
+                <a href="/TonKho/Index" class="nav-item @(ctrl=="TonKho"?"active":"")">
+                    <span class="nav-icon">📊</span> Tồn kho
+                </a>
+                <a href="/ViTriKho/Index" class="nav-item @(ctrl=="ViTriKho"?"active":"")">
+                    <span class="nav-icon">🗺️</span> Vị trí kho
+                </a>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-label">Quản lý</div>
+                <a href="/VatTu/Index" class="nav-item @(ctrl=="VatTu"?"active":"")">
+                    <span class="nav-icon">🔧</span> Quản lý vật tư
+                </a>
+                <a href="/QuanLyKho/Index" class="nav-item @(ctrl=="QuanLyKho"?"active":"")">
+                    <span class="nav-icon">🏭</span> Quản lý kho
+                </a>
+                <a href="/NhaCungCap/Index" class="nav-item @(ctrl=="NhaCungCap"?"active":"")">
+                    <span class="nav-icon">🤝</span> Nhà cung cấp
+                </a>
+            </div>
+        }
+
+        @* ── CHỈ ADMIN: Cảnh báo, Báo cáo, Người dùng ── *@
+        @if (isAdmin)
+        {
+            <div class="nav-section">
+                <div class="nav-label">Hệ thống</div>
+                <a href="/CanhBao/Index" class="nav-item @(ctrl=="CanhBao"?"active":"")">
+                    <span class="nav-icon">🔔</span> Cảnh báo hệ thống
+                </a>
+                <a href="/BaoCao/Index" class="nav-item @(ctrl=="BaoCao"?"active":"")">
+                    <span class="nav-icon">📋</span> Báo cáo
+                </a>
+                <a href="/NguoiDung/Index" class="nav-item @(ctrl=="NguoiDung"?"active":"")">
+                    <span class="nav-icon">👥</span> Quản lý người dùng
+                </a>
+            </div>
+        }
+
+        <div class="nav-section">
+            <div class="nav-label">Tài khoản</div>
+            <a href="/Account/DoiMatKhau" class="nav-item">
+                <span class="nav-icon">🔑</span> Đổi mật khẩu
+            </a>
+            <form asp-controller="Account" asp-action="Logout" method="post" style="margin:0;">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="nav-item" style="width:100%;text-align:left;background:none;border:none;cursor:pointer;color:inherit;font:inherit;padding:0;">
+                    <span class="nav-icon">🚪</span> Đăng xuất
+                </button>
+            </form>
+        </div>
+    </nav>
+
+    <div class="sidebar-footer">
+        <div class="user-avatar">@initials</div>
+        <div class="user-info">
+            <div class="user-name">@hoTen</div>
+            <div class="user-role">
+                @if (isAdmin) { <span>🔴 Quản trị viên</span> }
+                else if (isQuanLy) { <span>🟡 Quản lý</span> }
+                else { <span>🟢 Nhân viên</span> }
+            </div>
+        </div>
+    </div>
+</aside>
+
+<div class="main">
+    <header class="topbar">
+        <div>
+            <div class="page-title">@ViewData["Title"]</div>
+            <div class="page-sub">@ViewData["SubTitle"]</div>
+        </div>
+        <div class="topbar-actions">
+            <div class="search-box">
+                <span>🔍</span>
+                <input type="text" id="globalSearch" placeholder="Tìm kiếm hàng hóa, phiếu..." />
+            </div>
+            <div class="icon-btn" title="Cảnh báo tồn kho" onclick="location.href='/CanhBao/Index'">🔔</div>
+            @if (isAdmin)
+            {
+                <div class="icon-btn" title="Quản lý người dùng" onclick="location.href='/NguoiDung/Index'">👥</div>
+            }
+        </div>
+    </header>
+
+    <div class="content">
+        @if (TempData["Success"] != null)
+        {
+            <div class="alert-success">✅ @TempData["Success"]</div>
+        }
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert-error">⚠️ @TempData["Error"]</div>
+        }
+
+        @RenderBody()
+    </div>
+</div>
+
+<style>
+.alert-error{background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.3);color:#ef4444;padding:12px 16px;border-radius:10px;margin-bottom:16px;font-size:14px;}
+</style>
+
+@await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

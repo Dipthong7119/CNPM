@@ -1,0 +1,47 @@
+@model WMSPro.Models.PhieuXuatKho
+@{ ViewData["Title"] = "Chỉnh sửa phiếu xuất"; ViewData["SubTitle"] = Model.SoPhieu; }
+<div class="card" style="max-width:860px">
+    <div class="card-header"><div class="card-title">✏️ Chỉnh sửa — @Model.SoPhieu</div></div>
+    <form asp-action="Sua" method="post">
+        <input type="hidden" asp-for="Id" />
+        <input type="hidden" asp-for="SoPhieu" />
+        <input type="hidden" asp-for="NguoiTaoId" />
+        <input type="hidden" asp-for="NguoiTaoHoTen" />
+        <div class="form-grid">
+            <div class="form-group"><label class="form-label">Số phiếu</label><input class="form-input" value="@Model.SoPhieu" readonly /></div>
+            <div class="form-group"><label class="form-label">Ngày</label><input class="form-input" asp-for="Ngay" type="date" /></div>
+            <div class="form-group">
+                <label class="form-label">Mã hàng</label>
+                <input class="form-input" asp-for="MaHang" placeholder="Nhập mã hàng (VD: BF-K300)" list="danhSachMaHang" />
+                <datalist id="danhSachMaHang">
+                    @foreach (var vt in ViewBag.DanhSachVatTu as List<WMSPro.Models.VatTu> ?? new())
+                    {
+                        <option value="@vt.MaVatTu">@vt.TenVatTu (Tồn: @vt.SoLuongTon)</option>
+                    }
+                </datalist>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Tên hàng</label>
+                <input class="form-input" asp-for="TenHang" />
+            </div>
+            <div class="form-group">
+                <label class="form-label">Mã lô hàng</label>
+                <input class="form-input" asp-for="MaLo" placeholder="Nhập mã lô (VD: LOT-038)" />
+            </div>
+            <div class="form-group"><label class="form-label">Số lượng xuất *</label><input class="form-input" asp-for="SlXuat" type="number" min="1" /></div>
+            <div class="form-group"><label class="form-label">Đối tác</label><input class="form-input" asp-for="DoiTac" /></div>
+            <div class="form-group"><label class="form-label">Bộ phận nhận</label><input class="form-input" asp-for="BoPhanNhan" /></div>
+            <div class="form-group"><label class="form-label">Lý do xuất</label><input class="form-input" asp-for="LyDoXuat" /></div>
+            <div class="form-group"><label class="form-label">Trạng thái</label>
+                <select class="form-select" asp-for="TrangThai">
+                    <option>Chờ duyệt</option><option>Đang soạn</option><option>Hoàn thành</option>
+                </select>
+            </div>
+            <div class="form-group form-full"><label class="form-label">Ghi chú</label><input class="form-input" asp-for="GhiChu" /></div>
+        </div>
+        <div class="form-actions">
+            <a href="/XuatKho" class="btn btn-secondary">Hủy bỏ</a>
+            <button type="submit" class="btn btn-primary">💾 Lưu thay đổi</button>
+        </div>
+    </form>
+</div>

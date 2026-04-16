@@ -1,0 +1,156 @@
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using WMSPro.Data;
+using WMSPro.Models;
+
+namespace WMSPro.Controllers
+{
+    [Authorize]
+    public class XuatKhoController : Controller
+    {
+        private readonly AppDbContext _db;
+        private readonly UserManager<ApplicationUser> _userMgr;
+
+        public XuatKhoController(AppDbContext db, UserManager<ApplicationUser> userMgr)
+        {
+            _db = db;
+            _userMgr = userMgr;
+        }
+
+        public async Task<IActionResult> Index(string? filter, string? q)
+        {
+            ViewBag.Filter = filter ?? "tat-ca";
+            ViewBag.Q = q ?? "";
+
+            var ds = _db.PhieuXuatKhos.AsQueryable();
+            if (filter == "hoan-thanh") ds = ds.Where(x => x.TrangThai == "Hoàn thành");
+            else if (filter == "dang-soan") ds = ds.Where(x => x.TrangThai == "Đang soạn");
+            else if (filter == "cho-duyet") ds = ds.Where(x => x.TrangThai == "Chờ duyệt");
+
+            if (!string.IsNullOrEmpty(q))
+                ds = ds.Where(x => x.SoPhieu.Contains(q) || x.TenHang.Contains(q) || x.MaHang.Contains(q));
+
+            return View(await ds.OrderByDescending(x => x.Id).ToListAsync());
+        }
+
+        // Tạo phiếu: Admin + Quản lý kho
+        [Authorize(Roles = VaiTroConst.QuanLyVaAdmin)]
+        public async Task<IActionResult> Tao()
+        {
+            ViewBag.DanhSachVatTu = await _db.VatTus.ToListAsync();
+            return View(new PhieuXuatKho
+            {
+                SoPhieu = "",  // Để trống - cho user nhập
+                Ngay = DateTime.Now,
+                TrangThai = "Chờ duyệt"
+            });
+        }
+
+        [HttpPost, Authorize(Roles = VaiTroConst.NhanVienVaAdmin)]
+        public async Task<IActionResult> Tao(PhieuXuatKho model)
+        {
+            // FIX: Đảm bảo các field string không bị null
+            model.GhiChu ??= "";
+            model.TenHang ??= "";
+            model.MaLo ??= "";
+            model.DoiTac ??= "";
+            model.BoPhanNhan ??= "";
+            model.LyDoXuat ??= "";
+
+            if (string.IsNullOrEmpty(model.MaHang) || model.SlXuat <= 0)
+            {
+                TempData["Error"] = "Vui lòng điền đầy đủ thông tin và số lượng xuất > 0!";
+                ViewBag.DanhSachVatTu = await _db.VatTus.ToListAsync(); return View(model);
+            }
+
+            var vatTu = await _db.VatTus.FirstOrDefaultAsync(v => v.MaVatTu == model.MaHang);
+            if (vatTu == null)
+            {
+                TempData["Error"] = "Mã hàng không tồn tại trong hệ thống!";
+                ViewBag.DanhSachVatTu = await _db.VatTus.ToListAsync(); return View(model);
+            }
+
+            if (vatTu.SoLuongTon < model.SlXuat)
+            {
+                TempData["Error"] = $"Không đủ tồn kho! Hiện có: {vatTu.SoLuongTon} {vatTu.DonViTinh}, cần xuất: {model.SlXuat}";
+                ViewBag.DanhSachVatTu = await _db.VatTus.ToListAsync(); return View(model);
+            }
+
+            model.TenHang = vatTu.TenVatTu;
+            // Nếu người dùng không nhập mã lô, tự động lấy từ vật tư
+            if (string.IsNullOrEmpty(model.MaLo))
+                model.MaLo = vatTu.MaLo;
+            model.TonSauXuat = vatTu.SoLuongTon - model.SlXuat;
+
+            var user = await _userMgr.GetUserAsync(User);
+            model.NguoiTaoId = user?.Id ?? "";
+            model.NguoiTaoHoTen = user?.HoTen ?? "";
+
+            _db.PhieuXuatKhos.Add(model);
+
+            if (model.TrangThai == "Hoàn thành")
+                vatTu.SoLuongTon = model.TonSauXuat;
+
+            await _db.SaveChangesAsync();
+
+            var viTri = await _db.ViTris.FirstOrDefaultAsync(v => v.MatHang.Contains(vatTu.TenVatTu));
+            TempData["Success"] = $"Phiếu xuất {model.SoPhieu} tạo thành công! Vị trí lấy hàng: {viTri?.MaViTri ?? vatTu.MaViTri}";
+            return RedirectToAction("Index");
+        }
+
+        public async Task<IActionResult> Xem(int id)
+        {
+            var phieu = await _db.PhieuXuatKhos.FindAsync(id);
+            if (phieu == null) return NotFound();
+            return View(phieu);
+        }
+
+        // ── Sửa/phê duyệt phiếu xuất: Quản lý + Admin ──
+        [Authorize(Roles = VaiTroConst.QuanLyVaAdmin)]
+        public async Task<IActionResult> Sua(int id)
+        {
+            var phieu = await _db.PhieuXuatKhos.FindAsync(id);
+            if (phieu == null) return NotFound();
+            ViewBag.DanhSachVatTu = await _db.VatTus.ToListAsync();
+            return View(phieu);
+        }
+
+        [HttpPost, Authorize(Roles = VaiTroConst.QuanLyVaAdmin)]
+        public async Task<IActionResult> Sua(PhieuXuatKho model)
+        {
+            // Đảm bảo các field string không bị null
+            model.GhiChu ??= "";
+            model.TenHang ??= "";
+            model.MaLo ??= "";
+            model.DoiTac ??= "";
+            model.BoPhanNhan ??= "";
+            model.LyDoXuat ??= "";
+            model.NguoiTaoId ??= "";
+            model.NguoiTaoHoTen ??= "";
+
+            var vatTu = await _db.VatTus.FirstOrDefaultAsync(v => v.MaVatTu == model.MaHang);
+            if (vatTu != null) model.TonSauXuat = vatTu.SoLuongTon - model.SlXuat;
+
+            _db.PhieuXuatKhos.Update(model);
+            await _db.SaveChangesAsync();
+            TempData["Success"] = $"Đã cập nhật {model.SoPhieu}!";
+            return RedirectToAction("Index");
+        }
+
+        // ── Xóa phiếu: Chỉ Admin ──
+        [HttpPost, Authorize(Roles = VaiTroConst.Admin)]
+        public async Task<IActionResult> Xoa(int id)
+        {
+            var phieu = await _db.PhieuXuatKhos.FindAsync(id);
+            if (phieu != null)
+            {
+                _db.PhieuXuatKhos.Remove(phieu);
+                await _db.SaveChangesAsync();
+                TempData["Success"] = $"Đã xóa phiếu {phieu.SoPhieu}!";
+            }
+            return RedirectToAction("Index");
+        }
+    }
+}
