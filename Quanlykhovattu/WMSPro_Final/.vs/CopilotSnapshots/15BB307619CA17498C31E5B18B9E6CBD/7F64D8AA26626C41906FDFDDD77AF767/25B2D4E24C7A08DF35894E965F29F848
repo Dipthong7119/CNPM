@@ -1,4 +1,4 @@
-@using Microsoft.AspNetCore.Identity
+﻿@using Microsoft.AspNetCore.Identity
 @using WMSPro.Models
 @inject SignInManager<ApplicationUser> SignInMgr
 @inject UserManager<ApplicationUser> UserMgr

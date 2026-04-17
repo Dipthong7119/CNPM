@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "WVXUvMo9yJg=",
+  "dgSpecHash": "SPXGr/naS6c=",
   "success": true,
-  "projectFilePath": "E:\\WMSPro_Final(fix02)\\WMSPro_Final\\WMSPro.csproj",
+  "projectFilePath": "E:\\CNPM\\Quanlykhovattu\\WMSPro_Final\\WMSPro.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\Dipthong\\.nuget\\packages\\humanizer.core\\2.14.1\\humanizer.core.2.14.1.nupkg.sha512",
     "C:\\Users\\Dipthong\\.nuget\\packages\\microsoft.aspnetcore.cryptography.internal\\8.0.0\\microsoft.aspnetcore.cryptography.internal.8.0.0.nupkg.sha512",
